@@ -1,0 +1,35 @@
+# ============================================
+# License Plate Recognition System
+# Python 3.10 | CUDA 12.1 | YOLO26
+# ============================================
+
+# --- PyTorch (আলাদা করে install করতে হবে, নিচে দেখো) ---
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# --- YOLO26 (Latest) ---
+ultralytics>=8.3.0
+
+# --- OCR ---
+paddlepaddle-gpu==2.6.1
+paddleocr>=2.7.0
+
+# --- Web Backend ---
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+websockets>=12.0
+python-multipart>=0.0.9
+aiofiles>=23.2.1
+
+# --- Database ---
+sqlalchemy>=2.0.0
+
+# --- Computer Vision ---
+opencv-python>=4.10.0
+numpy>=1.26.0
+filterpy>=1.4.5
+scikit-image>=0.22.0
+
+# --- Utilities ---
+python-dotenv>=1.0.0
+Pillow>=10.0.0
+easyocr>=1.7.0

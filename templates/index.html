@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LPR System</title>
+<style>
+  :root {
+    --red:       #c0392b;
+    --red-dark:  #922b21;
+    --red-light: #e74c3c;
+    --bg:        #0d0d0d;
+    --surface:   #1a1a1a;
+    --surface2:  #222222;
+    --border:    #2e2e2e;
+    --text:      #f0f0f0;
+    --text-muted:#888;
+    --white:     #ffffff;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, var(--red-dark), var(--red));
+    padding: 0 32px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 20px rgba(192,57,43,.4);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header .logo { font-size: 26px; }
+  header h1 { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: .5px; }
+  header p  { font-size: 11px; color: rgba(255,255,255,.6); margin-top:2px; }
+  .status-pill {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,0,0,.3);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    color: #fff;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #e74c3c;
+    box-shadow: 0 0 6px #e74c3c;
+    transition: all .3s;
+  }
+  .dot.on { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
+
+  /* ── Tab Bar ── */
+  .tab-bar {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    gap: 4px;
+  }
+  .tab {
+    padding: 14px 24px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 3px solid transparent;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--red-light);
+    border-bottom-color: var(--red-light);
+  }
+  .tab-badge {
+    background: var(--red);
+    color: #fff;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-weight: 700;
+  }
+
+  /* ── Main Layout ── */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+    padding: 20px 24px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 12px 18px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-header .badge {
+    margin-left: auto;
+    background: var(--red);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+
+  /* ── Video List ── */
+  .video-list {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .video-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .video-item:hover { border-color: var(--red); }
+  .video-item.selected { border-color: var(--red-light); background: rgba(192,57,43,.1); }
+  .video-item .vi-icon { font-size: 20px; }
+  .video-item .vi-name { font-size: 13px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .video-item .vi-check {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+  .video-item.selected .vi-check {
+    background: var(--red-light);
+    border-color: var(--red-light);
+  }
+
+  /* ── Upload Zone ── */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    margin: 12px;
+  }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--red); background: rgba(192,57,43,.05); }
+  .upload-zone .uz-icon { font-size: 32px; margin-bottom: 8px; }
+  .upload-zone p { font-size: 13px; color: var(--text-muted); }
+  .upload-zone span { color: var(--red-light); font-weight: 600; }
+  input[type=file] { display: none; }
+
+  /* ── Buttons ── */
+  .btn {
+    padding: 9px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all .2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .btn-red {
+    background: linear-gradient(135deg, var(--red), var(--red-light));
+    color: #fff;
+  }
+  .btn-red:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(192,57,43,.4); }
+  .btn-red:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+  .btn-outline:hover { border-color: var(--red); color: var(--text); }
+
+  .btn-row { display: flex; gap: 8px; padding: 0 12px 12px; flex-wrap: wrap; }
+
+  /* ── Progress ── */
+  .prog-wrap { margin: 0 12px 10px; display: none; }
+  .prog-wrap.show { display: block; }
+  .prog-label { font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; margin-bottom: 5px; }
+  .prog-bg { background: var(--bg); border-radius: 999px; height: 6px; overflow: hidden; }
+  .prog-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red-dark), var(--red-light));
+    border-radius: 999px;
+    width: 0%;
+    transition: width .4s;
+  }
+
+  /* ── Canvas ── */
+  .video-wrap {
+    background: #000;
+    min-height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  #videoCanvas { width: 100%; max-height: 460px; object-fit: contain; display: none; }
+  .vid-placeholder { text-align: center; color: #444; }
+  .vid-placeholder .vp-icon { font-size: 48px; margin-bottom: 8px; }
+  .vid-placeholder p { font-size: 13px; }
+
+  /* ── Stats ── */
+  .stats-row {
+    display: flex;
+    border-top: 1px solid var(--border);
+  }
+  .stat {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+  }
+  .stat:last-child { border-right: none; }
+  .stat-val { font-size: 22px; font-weight: 700; color: var(--red-light); }
+  .stat-lbl { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── Detection Feed ── */
+  .feed { max-height: 480px; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .feed::-webkit-scrollbar { width: 3px; }
+  .feed::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .det-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    gap: 10px;
+    animation: slideIn .3s ease;
+    border-left: 3px solid var(--red);
+  }
+  @keyframes slideIn { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }
+
+  .det-thumb {
+    width: 72px; height: 36px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .det-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+  .det-plate { font-size: 17px; font-weight: 700; color: var(--white); letter-spacing: 1.5px; }
+  .det-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .conf-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 3px;
+    margin-top: 5px;
+    overflow: hidden;
+  }
+  .conf-fill { height: 100%; background: var(--red-light); border-radius: 3px; }
+
+  .empty { text-align: center; padding: 40px 20px; color: #555; }
+  .empty .e-icon { font-size: 36px; margin-bottom: 8px; }
+
+  /* ── Search Panel ── */
+  .search-bar {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .search-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    transition: border .2s;
+  }
+  .search-input:focus { border-color: var(--red); }
+  .search-input::placeholder { color: var(--text-muted); }
+
+  /* ── History Table ── */
+  .tbl-wrap { overflow-x: auto; max-height: 400px; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    background: var(--surface2);
+    padding: 10px 12px;
+    text-align: left;
+    color: var(--text-muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .7px;
+    position: sticky;
+    top: 0;
+  }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
+  tr:hover td { background: rgba(192,57,43,.05); }
+  .plate-cell { font-weight: 700; letter-spacing: 1px; color: var(--white); font-size: 13px; }
+  .src-badge {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(192,57,43,.2);
+    color: var(--red-light);
+    border: 1px solid var(--red);
+  }
+
+  /* ── Tab Panels ── */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── Log ── */
+  .log {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    background: #050505;
+    padding: 10px;
+    height: 120px;
+    overflow-y: auto;
+    color: #4ade80;
+  }
+  .log .l { margin-bottom: 2px; }
+  .log .l.err { color: #f87171; }
+  .log .l.warn { color: #fbbf24; }
+
+  @media (max-width: 960px) { .main { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">🚔</div>
+  <div>
+    <h1>License Plate Recognition System</h1>
+    <p>YOLO26 + EasyOCR — Traffic Surveillance</p>
+  </div>
+  <div class="status-pill">
+    <div class="dot" id="dot"></div>
+    <span id="statusText">Idle</span>
+  </div>
+</header>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <div class="tab active" data-tab="cctv1" onclick="switchTab('cctv1')">
+    📷 CCTV 1
+  </div>
+  <div class="tab" data-tab="cctv2" onclick="switchTab('cctv2')">
+    📷 CCTV 2
+  </div>
+  <div class="tab" data-tab="video" onclick="switchTab('video')">
+    🎬 Video
+  </div>
+  <div class="tab" data-tab="history" onclick="switchTab('history')">
+    📋 History
+    <span class="tab-badge" id="histBadge">0</span>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Left -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Source Panel (CCTV1 / CCTV2 / Video) -->
+    <div class="card" id="sourcePanel">
+      <div class="card-header">
+        <span id="sourceIcon">📷</span>
+        <span id="sourceTitle">CCTV 1 — Video Files</span>
+        <span class="badge" id="videoCount">0 files</span>
+      </div>
+
+      <!-- Video List -->
+      <div class="video-list" id="videoList">
+        <div class="empty" style="padding:20px;">
+          <div class="e-icon">📂</div>
+          <p>No videos uploaded yet</p>
+        </div>
+      </div>
+
+      <!-- Upload -->
+      <div class="upload-zone" id="uploadZone">
+        <div class="uz-icon">⬆️</div>
+        <p>Drag & drop or <span>browse</span> to upload</p>
+        <p style="font-size:11px;margin-top:4px;">MP4 · AVI · MOV · MKV</p>
+      </div>
+      <input type="file" id="fileInput" accept=".mp4,.avi,.mov,.mkv"/>
+
+      <!-- Progress -->
+      <div class="prog-wrap" id="uploadProg">
+        <div class="prog-label"><span>Uploading...</span><span id="upPct">0%</span></div>
+        <div class="prog-bg"><div class="prog-fill" id="upBar"></div></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-red" id="processBtn" disabled>▶ Process Selected</button>
+        <button class="btn btn-outline" id="stopBtn" disabled>⏹ Stop</button>
+        <button class="btn btn-outline" onclick="refreshVideoList()">🔄 Refresh</button>
+      </div>
+    </div>
+
+    <!-- Live View -->
+    <div class="card">
+      <div class="card-header">🎥 Live View</div>
+      <div class="video-wrap">
+        <canvas id="videoCanvas"></canvas>
+        <div class="vid-placeholder" id="vidPlaceholder">
+          <div class="vp-icon">📺</div>
+          <p>Select a video and click Process</p>
+        </div>
+      </div>
+
+      <!-- Processing Progress -->
+      <div class="prog-wrap" id="procProg" style="margin:10px 12px 0;">
+        <div class="prog-label">
+          <span id="procLabel">Processing...</span>
+          <span id="procPct">0%</span>
+        </div>
+        <div class="prog-bg"><div class="prog-fill" id="procBar"></div></div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat"><div class="stat-val" id="sFrames">0</div><div class="stat-lbl">Frames</div></div>
+        <div class="stat"><div class="stat-val" id="sDetections">0</div><div class="stat-lbl">Detections</div></div>
+        <div class="stat"><div class="stat-val" id="sUnique">0</div><div class="stat-lbl">Unique Plates</div></div>
+        <div class="stat"><div class="stat-val" id="sFps">—</div><div class="stat-lbl">FPS</div></div>
+      </div>
+    </div>
+
+    <!-- Log -->
+    <div class="card">
+      <div class="card-header">🖥 System Log</div>
+      <div class="log" id="log"></div>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Live Feed -->
+    <div class="card" style="flex:1;">
+      <div class="card-header">
+        🔍 Detected Plates
+        <span class="badge" id="feedBadge">0</span>
+      </div>
+      <div class="feed" id="feed">
+        <div class="empty">
+          <div class="e-icon">🔍</div>
+          <p>Detections appear here</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- History Tab (full width) -->
+<div id="historyPanel" style="display:none; padding:0 24px 24px; max-width:1600px; margin:0 auto;">
+  <div class="card">
+    <div class="card-header">📋 Detection History</div>
+    <div class="search-bar">
+      <input class="search-input" id="searchInput" placeholder="🔍 Search plate number..." />
+      <select class="search-input" id="searchSource" style="max-width:140px;">
+        <option value="">All Sources</option>
+        <option value="cctv1">CCTV 1</option>
+        <option value="cctv2">CCTV 2</option>
+        <option value="video">Video</option>
+      </select>
+      <button class="btn btn-red" onclick="doSearch()">Search</button>
+      <button class="btn btn-outline" onclick="loadHistory()">All</button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Plate</th>
+            <th>Confidence</th>
+            <th>Source</th>
+            <th>Frame</th>
+            <th>Image</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody id="histBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────
+let currentTab      = "cctv1";
+let selectedVideo   = null;
+let ws              = null;
+let isProcessing    = false;
+let frameCount      = 0;
+let detCount        = 0;
+let uniquePlates    = new Set();
+let lastFrameTime   = Date.now();
+
+const API = `http://${location.host}`;
+const WS  = `ws://${location.host}/ws/process`;
+
+// ── DOM ───────────────────────────────────────────────────────────────
+const canvas      = document.getElementById("videoCanvas");
+const ctx         = canvas.getContext("2d");
+const placeholder = document.getElementById("vidPlaceholder");
+const processBtn  = document.getElementById("processBtn");
+const stopBtn     = document.getElementById("stopBtn");
+const feed        = document.getElementById("feed");
+const logBox      = document.getElementById("log");
+
+// ── Tab Switch ────────────────────────────────────────────────────────
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tab));
+
+  const isHistory = tab === "history";
+  document.querySelector(".main").style.display           = isHistory ? "none" : "grid";
+  document.getElementById("historyPanel").style.display   = isHistory ? "block" : "none";
+
+  if (isHistory) { loadHistory(); return; }
+
+  // Update source panel
+  const icons  = { cctv1:"📷", cctv2:"📷", video:"🎬" };
+  const titles = { cctv1:"CCTV 1 — Video Files", cctv2:"CCTV 2 — Video Files", video:"Video — Uploaded Files" };
+  document.getElementById("sourceIcon").textContent  = icons[tab];
+  document.getElementById("sourceTitle").textContent = titles[tab];
+
+  selectedVideo = null;
+  processBtn.disabled = true;
+  refreshVideoList();
+}
+
+// ── Video List ────────────────────────────────────────────────────────
+async function refreshVideoList() {
+  const res    = await fetch(`${API}/videos/${currentTab}`);
+  const data   = await res.json();
+  const videos = data.videos || [];
+
+  document.getElementById("videoCount").textContent = `${videos.length} files`;
+
+  const list = document.getElementById("videoList");
+  if (!videos.length) {
+    list.innerHTML = `<div class="empty" style="padding:16px;"><div class="e-icon">📂</div><p>No videos yet</p></div>`;
+    return;
+  }
+
+  list.innerHTML = videos.map(v => `
+    <div class="video-item" id="vi_${v}" onclick="selectVideo('${v}')">
+      <span class="vi-icon">🎬</span>
+      <span class="vi-name">${v.replace(currentTab + "_", "")}</span>
+      <div class="vi-check" id="chk_${v}"></div>
+    </div>
+  `).join("");
+}
+
+function selectVideo(name) {
+  document.querySelectorAll(".video-item").forEach(el => el.classList.remove("selected"));
+  document.getElementById(`vi_${name}`)?.classList.add("selected");
+  selectedVideo = name;
+  processBtn.disabled = false;
+  addLog(`Selected: ${name}`);
+}
+
+// ── Upload ────────────────────────────────────────────────────────────
+const uploadZone = document.getElementById("uploadZone");
+const fileInput  = document.getElementById("fileInput");
+
+uploadZone.addEventListener("click",     () => fileInput.click());
+uploadZone.addEventListener("dragover",  e  => { e.preventDefault(); uploadZone.classList.add("drag"); });
+uploadZone.addEventListener("dragleave", () => uploadZone.classList.remove("drag"));
+uploadZone.addEventListener("drop",      e  => { e.preventDefault(); uploadZone.classList.remove("drag"); handleUpload(e.dataTransfer.files[0]); });
+fileInput.addEventListener("change",     e  => handleUpload(e.target.files[0]));
+
+async function handleUpload(file) {
+  if (!file) return;
+  addLog(`Uploading: ${file.name}`);
+
+  const prog = document.getElementById("uploadProg");
+  const bar  = document.getElementById("upBar");
+  const pct  = document.getElementById("upPct");
+  prog.classList.add("show");
+
+  const fd  = new FormData();
+  fd.append("file", file);
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", `${API}/upload/${currentTab}`);
+
+  xhr.upload.onprogress = e => {
+    if (e.lengthComputable) {
+      const p = Math.round(e.loaded / e.total * 100);
+      bar.style.width = p + "%";
+      pct.textContent = p + "%";
+    }
+  };
+
+  xhr.onload = () => {
+    prog.classList.remove("show");
+    if (xhr.status === 200) {
+      addLog(`Upload done: ${file.name}`, "ok");
+      refreshVideoList();
+    } else {
+      addLog(`Upload failed`, "err");
+    }
+  };
+  xhr.send(fd);
+}
+
+// ── Process ───────────────────────────────────────────────────────────
+processBtn.addEventListener("click", startProcessing);
+stopBtn.addEventListener("click",    stopProcessing);
+
+function startProcessing() {
+  if (!selectedVideo || isProcessing) return;
+
+  // Reset
+  frameCount = 0; detCount = 0; uniquePlates.clear();
+  feed.innerHTML = `<div class="empty"><div class="e-icon">⏳</div><p>Detecting...</p></div>`;
+  document.getElementById("feedBadge").textContent = "0";
+  updateStats();
+
+  isProcessing = true;
+  processBtn.disabled = true;
+  stopBtn.disabled    = false;
+  document.getElementById("procProg").classList.add("show");
+  document.getElementById("dot").classList.add("on");
+  document.getElementById("statusText").textContent = "Processing";
+
+  ws = new WebSocket(WS);
+  ws.binaryType = "arraybuffer";
+
+  ws.onopen = () => {
+    addLog("WebSocket connected", "ok");
+    ws.send(JSON.stringify({ filename: selectedVideo, source: currentTab }));
+  };
+
+  ws.onmessage = handleWsMsg;
+  ws.onerror   = () => addLog("WebSocket error", "err");
+  ws.onclose   = () => {
+    document.getElementById("dot").classList.remove("on");
+    document.getElementById("statusText").textContent = "Idle";
+    isProcessing = false;
+    stopBtn.disabled = true;
+  };
+}
+
+function stopProcessing() {
+  if (ws) ws.close();
+  isProcessing = false;
+  processBtn.disabled = false;
+  stopBtn.disabled    = true;
+  addLog("Stopped by user", "warn");
+}
+
+// ── WebSocket Handler ─────────────────────────────────────────────────
+function handleWsMsg(event) {
+  if (event.data instanceof ArrayBuffer) {
+    renderFrame(event.data);
+    frameCount++;
+    const now = Date.now();
+    const fps = Math.round(1000 / (now - lastFrameTime));
+    lastFrameTime = now;
+    document.getElementById("sFrames").textContent = frameCount;
+    document.getElementById("sFps").textContent    = fps;
+    return;
+  }
+
+  const msg = JSON.parse(event.data);
+
+  if (msg.type === "started") {
+    addLog(`Started | ${msg.total_frames} frames @ ${msg.fps.toFixed(0)} FPS`, "ok");
+  }
+
+  else if (msg.type === "detection") {
+    addDetCard(msg);
+    detCount++;
+    uniquePlates.add(msg.plate_text);
+    updateStats();
+    updateHistBadge();
+  }
+
+  else if (msg.type === "progress") {
+    document.getElementById("procBar").style.width   = msg.progress + "%";
+    document.getElementById("procPct").textContent   = msg.progress + "%";
+    document.getElementById("procLabel").textContent = `Frame ${msg.frame}...`;
+  }
+
+  else if (msg.type === "completed") {
+    addLog(`✅ Done! ${msg.total_detections} unique plates`, "ok");
+    document.getElementById("procBar").style.width = "100%";
+    document.getElementById("procPct").textContent = "100%";
+    processBtn.disabled = false;
+  }
+
+  else if (msg.type === "error") {
+    addLog(`Error: ${msg.message}`, "err");
+  }
+}
+
+// ── Render Frame ──────────────────────────────────────────────────────
+function renderFrame(buf) {
+  const blob = new Blob([buf], { type: "image/jpeg" });
+  const url  = URL.createObjectURL(blob);
+  const img  = new Image();
+  img.onload = () => {
+    canvas.width  = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+    URL.revokeObjectURL(url);
+    canvas.style.display      = "block";
+    placeholder.style.display = "none";
+  };
+  img.src = url;
+}
+
+// ── Detection Card ────────────────────────────────────────────────────
+function addDetCard(det) {
+  const empty = feed.querySelector(".empty");
+  if (empty) empty.remove();
+
+  const card = document.createElement("div");
+  card.className = "det-card";
+  const imgSrc = `${API}/output/plates/${det.plate_img}`;
+
+  card.innerHTML = `
+    <div class="det-thumb">
+      <img src="${imgSrc}" alt="plate" onerror="this.style.display='none'"/>
+    </div>
+    <div>
+      <div class="det-plate">${det.plate_text || "—"}</div>
+      <div class="det-meta">
+        <span>🎯 ${det.confidence}%</span>
+        <span>📷 ${det.source.toUpperCase()}</span>
+        <span>🖼 F:${det.frame_num}</span>
+        <span>🕐 ${det.timestamp.slice(11)}</span>
+      </div>
+      <div class="conf-bar">
+        <div class="conf-fill" style="width:${det.confidence}%"></div>
+      </div>
+    </div>
+  `;
+
+  feed.prepend(card);
+  document.getElementById("feedBadge").textContent =
+    feed.querySelectorAll(".det-card").length;
+
+  // Keep max 60
+  const cards = feed.querySelectorAll(".det-card");
+  if (cards.length > 60) cards[cards.length - 1].remove();
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById("sDetections").textContent = detCount;
+  document.getElementById("sUnique").textContent     = uniquePlates.size;
+}
+
+// ── History ───────────────────────────────────────────────────────────
+async function loadHistory() {
+  const res  = await fetch(`${API}/all-detections`);
+  const data = await res.json();
+  renderTable(data.results);
+  updateHistBadge(data.count);
+}
+
+async function doSearch() {
+  const q   = document.getElementById("searchInput").value.trim();
+  const src = document.getElementById("searchSource").value;
+  const res = await fetch(`${API}/search?query=${encodeURIComponent(q)}&source=${src}`);
+  const data = await res.json();
+  renderTable(data.results);
+}
+
+function renderTable(rows) {
+  const body = document.getElementById("histBody");
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#555;padding:24px;">No records found</td></tr>`;
+    return;
+  }
+  body.innerHTML = rows.map((r, i) => `
+    <tr>
+      <td style="color:#555;">${i+1}</td>
+      <td class="plate-cell">${r.plate_text}</td>
+      <td style="color:var(--red-light);">${(r.confidence*100).toFixed(1)}%</td>
+      <td><span class="src-badge">${r.source.toUpperCase()}</span></td>
+      <td style="color:#555;">${r.frame_num}</td>
+      <td>
+        <img src="${API}/output/plates/${r.plate_img}"
+             style="height:28px;border-radius:3px;"
+             onerror="this.style.display='none'"/>
+      </td>
+      <td style="color:#555;font-size:11px;">${r.timestamp}</td>
+    </tr>
+  `).join("");
+}
+
+async function updateHistBadge(count) {
+  if (count === undefined) {
+    const res  = await fetch(`${API}/all-detections`);
+    const data = await res.json();
+    count = data.count;
+  }
+  document.getElementById("histBadge").textContent = count;
+}
+
+// ── Log ───────────────────────────────────────────────────────────────
+function addLog(msg, type = "") {
+  const line = document.createElement("div");
+  line.className = `l ${type}`;
+  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  logBox.appendChild(line);
+  logBox.scrollTop = logBox.scrollHeight;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────
+refreshVideoList();
+updateHistBadge();
+addLog("System ready.");
+</script>
+</body>
+</html>

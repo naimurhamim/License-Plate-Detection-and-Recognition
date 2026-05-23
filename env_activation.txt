@@ -1,0 +1,3 @@
+python -m venv lpr_env
+
+source lpr_env/Scripts/activate

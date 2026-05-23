@@ -1,0 +1,26 @@
+# Virtual environment
+lpr_env/
+
+# Dataset (too large)
+License-Plate-Recognition-4/
+dataset/
+
+# Training runs
+runs/
+
+# Uploaded videos
+uploads/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment
+.env
+
+# Large model files (comment out if want to keep)
+# yolo26n.pt
+
+# Output plates
+output/plates/
