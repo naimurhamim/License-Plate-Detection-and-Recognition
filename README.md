@@ -37,6 +37,17 @@
 
 </div>
 
+
+## 🎬 Demo Video
+
+<div align="center">
+
+[![License Plate Detection & Recognition System Demo](https://img.youtube.com/vi/Rw0dlmQfbv8/maxresdefault.jpg)](https://youtu.be/Rw0dlmQfbv8)
+
+**▶ [Watch Full Demo on YouTube](https://youtu.be/Rw0dlmQfbv8)**
+
+</div>
+
 ---
 
 ## 📸 Screenshots
